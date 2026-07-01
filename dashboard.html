@@ -189,6 +189,7 @@ tbody td{padding:7px 10px;color:#1a2340;vertical-align:middle}
     <div class="card-title" id="cP2Title">Distribuição por Município</div>
     <canvas id="cP2"></canvas>
   </div>
+  <div id="equipFiltroInfo" style="display:none;background:#e6f1fb;border:.5px solid #1A5FA8;border-radius:7px;padding:8px 14px;font-size:11px;color:#1A3560;font-weight:600;margin-bottom:8px;cursor:pointer" onclick="limparEquipFiltro()"></div>
   <div class="p2-grid">
     <div>
       <div class="tbl-wrap"><table id="tabela"><thead><tr><th onclick="sort(0)">Município ↕</th><th onclick="sort(1)">Região ↕</th><th onclick="sort(2)">Beneficiário ↕</th><th onclick="sort(3)">Data ↕</th><th onclick="sort(4)">Status ↕</th></tr></thead><tbody id="tbody"></tbody></table></div>
@@ -323,6 +324,8 @@ function renderTemporal() {
 
 
 function aplicarP2() {
+  equipSelecionado=null;
+  document.getElementById('equipFiltroInfo').style.display='none';
   atualizarMunSelect('f2m','f2r');
   const reg=document.getElementById('f2r').value, mun=document.getElementById('f2m').value;
   const status=document.getElementById('f2s').value, busca=document.getElementById('f2b').value.toLowerCase().trim();
@@ -369,6 +372,8 @@ function selLinha(idx, tr) {
 }
 
 function setAgrupar(el, tipo) {
+  equipSelecionado=null;
+  document.getElementById('equipFiltroInfo').style.display='none';
   document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
   el.classList.add('active'); ag=tipo; renderP2Chart();
 }
@@ -469,9 +474,68 @@ function renderP2Chart() {
             });
           });
         }
+      },
+      onClick: function(evt, elements) {
+        if(!isEquipamento || !elements.length) return;
+        const idx=elements[0].index;
+        const nomeEquip=labels[idx];
+        if(equipSelecionado===nomeEquip) {
+          // Clicou no mesmo — desseleciona
+          equipSelecionado=null;
+          document.getElementById('equipFiltroInfo').style.display='none';
+          renderTabela();
+        } else {
+          equipSelecionado=nomeEquip;
+          document.getElementById('equipFiltroInfo').textContent='Filtrando por: '+nomeEquip+' — clique novamente para limpar';
+          document.getElementById('equipFiltroInfo').style.display='block';
+          renderTabelaPorEquipamento(nomeEquip);
+        }
       }
     }
   });
+}
+
+function limparEquipFiltro() {
+  equipSelecionado=null;
+  document.getElementById('equipFiltroInfo').style.display='none';
+  renderTabela();
+}
+
+function renderTabelaPorEquipamento(nomeEquip) {
+  // Filtra registros que possuem o equipamento selecionado com quantidade > 0
+  const dadosFiltrados=dp2.filter(r=>{
+    return (r.itens||[]).some(it=>it.nome===nomeEquip && it.qtd>0);
+  });
+
+  if(sc>=0) {
+    const keys=['municipio','regiao','beneficiario','data','status'];
+    dadosFiltrados.sort((a,b)=>{
+      const va=(a[keys[sc]]||'').toLowerCase(), vb=(b[keys[sc]]||'').toLowerCase();
+      return sa?va.localeCompare(vb,'pt-BR'):vb.localeCompare(va,'pt-BR');
+    });
+  }
+
+  document.getElementById('tbody').innerHTML=dadosFiltrados.map(r=>{
+    const idx=D.indexOf(r);
+    const bc=r.status==='ATENDIDO'?'bg':'ba';
+    const df=r.data?r.data.substring(0,10).split('-').reverse().join('/'):'—';
+    // Pegar quantidade do equipamento selecionado
+    const itemEquip=(r.itens||[]).find(it=>it.nome===nomeEquip);
+    const qtdEquip=itemEquip?itemEquip.qtd:0;
+    return `<tr onclick="selLinha(${idx},this)">
+      <td>${r.municipio}</td>
+      <td style="color:var(--cinza)">${r.regiao||'—'}</td>
+      <td>${r.beneficiario||'—'}</td>
+      <td style="color:var(--cinza)">${df}</td>
+      <td><span class="badge ${bc}">${r.status}</span></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('tblInfo').textContent=
+    `${dadosFiltrados.length} registro${dadosFiltrados.length!==1?'s':''} com "${nomeEquip}"`;
+
+  document.getElementById('pVazio').style.display='block';
+  document.getElementById('pConteudo').style.display='none';
 }
 
 function exportCSV() {
