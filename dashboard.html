@@ -182,7 +182,6 @@ tbody td{padding:7px 10px;color:#1a2340;vertical-align:middle}
   <div class="pills">
     <span class="pills-lbl">Agrupar por</span>
     <div class="pill active" onclick="setAgrupar(this,'municipio')">Município</div>
-    <div class="pill" onclick="setAgrupar(this,'beneficiario')">Beneficiário</div>
     <div class="pill" onclick="setAgrupar(this,'equipamento')">Equipamento</div>
     <div class="pill" onclick="setAgrupar(this,'regiao')">Região</div>
   </div>
@@ -211,11 +210,12 @@ let cT=null, cM=null, cP2=null;
 
 // Opcoes de escala inteira para todos os graficos
 function scaleOpts(horizontal) {
-  const base = {grid:{color:'#f0f3f8'}, ticks:{color:'#6B7A99', font:{size:9}, stepSize:1,
+  const valAxis = {grid:{color:'#f0f3f8'}, ticks:{color:'#6B7A99', font:{size:9}, stepSize:1,
     callback: v => Number.isInteger(v) ? v : ''}};
-  const baseX = {grid:{display:false}, ticks:{color:'#6B7A99', font:{size:9}, maxRotation:45}};
-  if (horizontal) return {x:base, y:{...base, grid:{color:'#f0f3f8'}}};
-  return {x:baseX, y:base};
+  const catAxis = {grid:{color:'#f0f3f8'}, ticks:{color:'#6B7A99', font:{size:9}}};
+  const catAxisX = {grid:{display:false}, ticks:{color:'#6B7A99', font:{size:9}, maxRotation:45}};
+  if (horizontal) return {x:valAxis, y:catAxis};
+  return {x:catAxisX, y:valAxis};
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -375,7 +375,15 @@ function setAgrupar(el, tipo) {
 
 function renderP2Chart() {
   const dados=dp2;
+  const statusFiltro=document.getElementById('f2s').value;
+
+  // Cor dinamica pelo filtro de status
+  let corBarra='#1A5FA8'; // azul = total geral
+  if(statusFiltro==='ATENDIDO') corBarra='#2A9D5C';   // verde
+  else if(statusFiltro==='SOLICITADO') corBarra='#F4A226'; // ambar
+
   let labels=[], datasets=[], titulo='', horizontal=false;
+
   if(ag==='municipio'||ag==='regiao') {
     titulo=ag==='municipio'?'Distribuição por Município':'Distribuição por Região';
     const key=ag==='municipio'?'municipio':'regiao';
@@ -387,35 +395,82 @@ function renderP2Chart() {
       {label:'Atendidas',data:sorted.map(([,v])=>v.at),backgroundColor:'#2A9D5C',borderRadius:3,maxBarThickness:36},
       {label:'Solicitadas',data:sorted.map(([,v])=>v.sol),backgroundColor:'#F4A226',borderRadius:3,maxBarThickness:36}
     ];
-  } else if(ag==='beneficiario') {
-    titulo='Distribuição por Beneficiário';
-    horizontal=true;
-    const mv={};
-    dados.forEach(r=>{ if(!r.beneficiario) return; if(!mv[r.beneficiario]) mv[r.beneficiario]={at:0,sol:0}; if(r.status==='ATENDIDO') mv[r.beneficiario].at++; else mv[r.beneficiario].sol++; });
-    const sorted=Object.entries(mv).sort((a,b)=>(b[1].at+b[1].sol)-(a[1].at+a[1].sol)).slice(0,15);
-    labels=sorted.map(([k])=>k);
-    datasets=[
-      {label:'Atendidas',data:sorted.map(([,v])=>v.at),backgroundColor:'#2A9D5C',borderRadius:3,maxBarThickness:28},
-      {label:'Solicitadas',data:sorted.map(([,v])=>v.sol),backgroundColor:'#F4A226',borderRadius:3,maxBarThickness:28}
-    ];
   } else if(ag==='equipamento') {
-    titulo='Total Solicitado por Equipamento';
-    horizontal=true;
+    titulo='Equipamentos mais solicitados';
+    // Contar quantidades reais dos itens
     const ev={};
     dados.forEach(r=>(r.itens||[]).forEach(it=>{ ev[it.nome]=(ev[it.nome]||0)+it.qtd; }));
     const sorted=Object.entries(ev).sort((a,b)=>b[1]-a[1]);
     labels=sorted.map(([k])=>k);
-    datasets=[{label:'Quantidade',data:sorted.map(([,v])=>v),backgroundColor:'#1A5FA8',borderRadius:3,maxBarThickness:28}];
+    const totais=sorted.map(([,v])=>v);
+    const maxVal=Math.max(...totais);
+    // Cor com gradiente de opacidade baseado na proporcao
+    const cores=totais.map(v=>{
+      const hex=corBarra.replace('#','');
+      const r=parseInt(hex.substring(0,2),16);
+      const g=parseInt(hex.substring(2,4),16);
+      const b=parseInt(hex.substring(4,6),16);
+      const alpha=0.4+0.6*(v/maxVal);
+      return `rgba(${r},${g},${b},${alpha})`;
+    });
+    datasets=[{
+      label:'Total solicitado',
+      data:totais,
+      backgroundColor:cores,
+      borderRadius:3,
+      maxBarThickness:36
+    }];
   }
+
   document.getElementById('cP2Title').textContent=titulo;
   if(cP2) cP2.destroy();
-  const scOpts=scaleOpts(horizontal);
+
+  const isHorizontal=false;
+  const isEquipamento=ag==='equipamento';
+  const scOpts=scaleOpts(isHorizontal);
+
+  // Para equipamento: sem eixo Y, com rotulos no topo
+  if(isEquipamento) {
+    scOpts.y={display:false};
+    scOpts.x={grid:{display:false}, ticks:{color:'#1a2340', font:{size:9}, maxRotation:45}};
+  }
+
   cP2=new Chart(document.getElementById('cP2').getContext('2d'),{
     type:'bar',
     data:{labels,datasets},
-    options:{indexAxis:horizontal?'y':'x',responsive:true,maintainAspectRatio:true,
-      plugins:{legend:{position:'bottom',labels:{font:{size:11},color:'#6B7A99',boxWidth:12}}},
-      scales:scOpts}
+    options:{
+      indexAxis:'x',
+      responsive:true,
+      maintainAspectRatio:true,
+      layout:{padding:{top: isEquipamento?24:8}},
+      plugins:{
+        legend:{
+          display:!isEquipamento,
+          position:'bottom',
+          labels:{font:{size:11},color:'#6B7A99',boxWidth:12}
+        }
+      },
+      scales:scOpts,
+      animation:{
+        onComplete: function() {
+          if(!isEquipamento) return;
+          const chart=this;
+          const ctx=chart.ctx;
+          chart.data.datasets.forEach((dataset,i)=>{
+            const meta=chart.getDatasetMeta(i);
+            meta.data.forEach((bar,index)=>{
+              const value=dataset.data[index];
+              if(!value) return;
+              ctx.fillStyle='#1a2340';
+              ctx.font='600 10px Segoe UI, Arial, sans-serif';
+              ctx.textAlign='center';
+              ctx.textBaseline='bottom';
+              ctx.fillText(value, bar.x, bar.y-4);
+            });
+          });
+        }
+      }
+    }
   });
 }
 
