@@ -109,6 +109,27 @@ tbody td{padding:7px 10px;color:#1a2340;vertical-align:middle}
 </style>
 </head>
 <body>
+
+<div id="loginScreen" style="position:fixed;inset:0;background:#1A3560;display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:0">
+  <div style="text-align:center;margin-bottom:32px">
+    <div style="color:#fff;font-size:20px;font-weight:700;letter-spacing:.5px">PAINEL DE MONITORAMENTO DAS DEMANDAS</div>
+    <div style="color:#a0b4d0;font-size:12px;margin-top:6px">Protocolo Digital 2025 — Acesso Restrito</div>
+  </div>
+  <div style="background:#fff;border-radius:12px;padding:32px 36px;width:320px;box-shadow:0 8px 32px rgba(0,0,0,.3)">
+    <div style="font-size:13px;font-weight:700;color:#1A3560;margin-bottom:6px;text-align:center">Acesso ao painel</div>
+    <div style="font-size:11px;color:#6B7A99;text-align:center;margin-bottom:20px">Digite a senha para continuar</div>
+    <input type="password" id="senhaInput" placeholder="Senha" 
+      style="width:100%;padding:10px 14px;border:1.5px solid #DDE3EF;border-radius:8px;font-size:13px;font-family:'Segoe UI',Arial,sans-serif;outline:none;margin-bottom:8px;color:#1a2340"
+      onkeydown="if(event.key==='Enter') verificarSenha()">
+    <div id="senhaErro" style="color:#C07C10;font-size:11px;text-align:center;margin-bottom:8px;display:none">Senha incorreta. Tente novamente.</div>
+    <button onclick="verificarSenha()" 
+      style="width:100%;background:#1A3560;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Segoe UI',Arial,sans-serif">
+      Acessar
+    </button>
+  </div>
+  <div style="color:#a0b4d0;font-size:10px;margin-top:24px">Acesso autorizado apenas para usuários credenciados</div>
+</div>
+
 <div class="header">
   <div class="header-top">
     <div><div class="h-title">PAINEL DE MONITORAMENTO DAS DEMANDAS</div><div class="h-sub">Atendidas × Solicitadas — Protocolo Digital 2025</div></div>
@@ -426,6 +447,26 @@ function exportCSV() {
   a.download='demandas_'+new Date().toISOString().substring(0,10)+'.csv';
   a.click();
 }
+
+async function verificarSenha() {
+  const input = document.getElementById('senhaInput').value;
+  const encoder = new TextEncoder();
+  const data = encoder.encode(input);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  
+  if (hashHex === '4a86b9c3b3e63660d348c56d9512e95ac32cde17a6e9ccbc8ab877969a6f8dc4') {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('senhaInput').value = '';
+  } else {
+    document.getElementById('senhaErro').style.display = 'block';
+    document.getElementById('senhaInput').value = '';
+    document.getElementById('senhaInput').focus();
+    setTimeout(() => document.getElementById('senhaErro').style.display = 'none', 3000);
+  }
+}
+
 </script>
 </body>
 </html>
