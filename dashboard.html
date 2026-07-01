@@ -153,6 +153,7 @@ tbody td{padding:7px 10px;color:#1a2340;vertical-align:middle}
     <select id="f1r" onchange="aplicarP1()"><option value="">Todas as regiões</option></select>
     <select id="f1m" onchange="aplicarP1()"><option value="">Todos os municípios</option></select>
     <select id="f1s" onchange="aplicarP1()"><option value="">Todos os semestres</option><option value="1">1º Semestre</option><option value="2">2º Semestre</option></select>
+    <select id="f1st" onchange="aplicarP1()"><option value="">Todos os status</option><option value="ATENDIDO">Atendido</option><option value="SOLICITADO">Solicitado</option></select>
     <button class="btn-lim" onclick="limparP1()">✕ Limpar filtros</button>
   </div>
   <div class="charts-grid" style="grid-template-columns:52% 48%">
@@ -192,7 +193,7 @@ tbody td{padding:7px 10px;color:#1a2340;vertical-align:middle}
   <div id="equipFiltroInfo" style="display:none;background:#e6f1fb;border:.5px solid #1A5FA8;border-radius:7px;padding:8px 14px;font-size:11px;color:#1A3560;font-weight:600;margin-bottom:8px;cursor:pointer" onclick="limparEquipFiltro()"></div>
   <div class="p2-grid">
     <div>
-      <div class="tbl-wrap"><table id="tabela"><thead><tr><th onclick="sort(0)">Município ↕</th><th onclick="sort(1)">Região ↕</th><th onclick="sort(2)">Beneficiário ↕</th><th onclick="sort(3)">Data ↕</th><th onclick="sort(4)">Status ↕</th></tr></thead><tbody id="tbody"></tbody></table></div>
+      <div class="tbl-wrap"><table id="tabela"><thead><tr><th onclick="sort(0)">Município ↕</th><th onclick="sort(1)">Região ↕</th><th onclick="sort(2)">Beneficiário ↕</th><th onclick="sort(3)">Status ↕</th><th>Equipamento / Item</th><th>Qtd</th></tr></thead><tbody id="tbody"></tbody></table></div>
       <div class="tbl-foot"><span id="tblInfo"></span><button class="btn-exp" onclick="exportCSV()">⬇ Exportar CSV</button></div>
     </div>
     <div class="painel" id="painel">
@@ -264,12 +265,12 @@ function atualizarMunSelect(selId, regId) {
 
 function aplicarP1() {
   atualizarMunSelect('f1m','f1r');
-  const reg=document.getElementById('f1r').value, mun=document.getElementById('f1m').value, sem=document.getElementById('f1s').value;
-  dp1 = filtrar(D, reg, mun, sem, '', '');
+  const reg=document.getElementById('f1r').value, mun=document.getElementById('f1m').value, sem=document.getElementById('f1s').value, st=document.getElementById('f1st').value;
+  dp1 = filtrar(D, reg, mun, sem, st, '');
   renderKPIs(); renderRegioes(); renderTemporal();
 }
 
-function limparP1() { ['f1r','f1m','f1s'].forEach(id=>document.getElementById(id).value=''); aplicarP1(); }
+function limparP1() { ['f1r','f1m','f1s','f1st'].forEach(id=>document.getElementById(id).value=''); aplicarP1(); }
 
 function renderKPIs() {
   const at=dp1.filter(r=>r.status==='ATENDIDO').length, sol=dp1.filter(r=>r.status==='SOLICITADO').length, tot=dp1.length;
@@ -337,12 +338,14 @@ function limparP2() { ['f2r','f2m','f2s'].forEach(id=>document.getElementById(id
 
 function renderTabela() {
   const dados=[...dp2];
-  if(sc>=0) { const keys=['municipio','regiao','beneficiario','data','status']; dados.sort((a,b)=>{ const va=(a[keys[sc]]||'').toLowerCase(), vb=(b[keys[sc]]||'').toLowerCase(); return sa?va.localeCompare(vb,'pt-BR'):vb.localeCompare(va,'pt-BR'); }); }
+  if(sc>=0) { const keys=['municipio','regiao','beneficiario','status','','']; dados.sort((a,b)=>{ const va=(a[keys[sc]]||'').toLowerCase(), vb=(b[keys[sc]]||'').toLowerCase(); return sa?va.localeCompare(vb,'pt-BR'):vb.localeCompare(va,'pt-BR'); }); }
   document.getElementById('tbody').innerHTML=dados.map(r=>{
     const idx=D.indexOf(r);
     const bc=r.status==='ATENDIDO'?'bg':'ba';
-    const df=r.data?r.data.substring(0,10).split('-').reverse().join('/'):'—';
-    return `<tr onclick="selLinha(${idx},this)"><td>${r.municipio}</td><td style="color:var(--cinza)">${r.regiao||'—'}</td><td>${r.beneficiario||'—'}</td><td style="color:var(--cinza)">${df}</td><td><span class="badge ${bc}">${r.status}</span></td></tr>`;
+    const itens=(r.itens||[]);
+    const nomeItens=itens.map(it=>it.nome).join(', ')||'—';
+    const qtdItens=itens.map(it=>it.qtd).join(', ')||'—';
+    return `<tr onclick="selLinha(${idx},this)"><td>${r.municipio}</td><td style="color:var(--cinza)">${r.regiao||'—'}</td><td>${r.beneficiario||'—'}</td><td><span class="badge ${bc}">${r.status}</span></td><td style="font-size:10px;color:var(--cinza);white-space:normal;word-break:break-word;max-width:220px">${nomeItens}</td><td style="font-size:10px;font-weight:700;color:var(--azul-medio);white-space:nowrap;vertical-align:top">${qtdItens}</td></tr>`;
   }).join('');
   document.getElementById('tblInfo').textContent=`${dados.length} registro${dados.length!==1?'s':''} encontrado${dados.length!==1?'s':''}`;
   document.getElementById('pVazio').style.display='block';
@@ -508,7 +511,7 @@ function renderTabelaPorEquipamento(nomeEquip) {
   });
 
   if(sc>=0) {
-    const keys=['municipio','regiao','beneficiario','data','status'];
+    const keys=['municipio','regiao','beneficiario','status','',''];
     dadosFiltrados.sort((a,b)=>{
       const va=(a[keys[sc]]||'').toLowerCase(), vb=(b[keys[sc]]||'').toLowerCase();
       return sa?va.localeCompare(vb,'pt-BR'):vb.localeCompare(va,'pt-BR');
@@ -518,7 +521,6 @@ function renderTabelaPorEquipamento(nomeEquip) {
   document.getElementById('tbody').innerHTML=dadosFiltrados.map(r=>{
     const idx=D.indexOf(r);
     const bc=r.status==='ATENDIDO'?'bg':'ba';
-    const df=r.data?r.data.substring(0,10).split('-').reverse().join('/'):'—';
     // Pegar quantidade do equipamento selecionado
     const itemEquip=(r.itens||[]).find(it=>it.nome===nomeEquip);
     const qtdEquip=itemEquip?itemEquip.qtd:0;
@@ -526,8 +528,9 @@ function renderTabelaPorEquipamento(nomeEquip) {
       <td>${r.municipio}</td>
       <td style="color:var(--cinza)">${r.regiao||'—'}</td>
       <td>${r.beneficiario||'—'}</td>
-      <td style="color:var(--cinza)">${df}</td>
       <td><span class="badge ${bc}">${r.status}</span></td>
+      <td style="font-size:10px;color:var(--cinza)">${nomeEquip}</td>
+      <td style="text-align:center;font-weight:700;color:var(--azul-medio)">${qtdEquip}</td>
     </tr>`;
   }).join('');
 
