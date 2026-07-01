@@ -111,15 +111,14 @@ tbody td{padding:7px 10px;color:#1a2340;vertical-align:middle}
 .btn-nav:hover{background:#122a4e}
 
 /* MAPA REGIAO (marcadores) */
-.mapa-regiao{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
-.reg-item{background:#F5F7FA;border-radius:7px;border:.5px solid var(--cinza-borda);padding:7px 10px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:space-between}
+.mapa-regiao{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.reg-item{background:#F5F7FA;border-radius:7px;border:.5px solid var(--cinza-borda);padding:10px 12px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;gap:5px}
 .reg-item:hover{border-color:var(--azul-medio);background:#e6f1fb}
-.reg-item.ativa{background:var(--azul);border-color:var(--azul);color:#fff}
-.reg-item.ativa .reg-nome{color:#fff}
-.reg-item.ativa .reg-stats{color:#a0c8f0}
-.reg-nome{font-size:10px;font-weight:700;color:#1a2340;line-height:1.2}
-.reg-stats{font-size:10px;color:var(--texto-cinza);white-space:nowrap;margin-left:6px}
-.reg-barra{height:3px;border-radius:2px;margin-top:4px;display:flex;overflow:hidden}
+.reg-item.ativa{background:var(--azul);border-color:var(--azul)}
+.reg-item.ativa .reg-nome{color:#fff}.reg-item.ativa .reg-n-g{color:#7eeaaa}.reg-item.ativa .reg-n-a{color:#ffd080}.reg-item.ativa .reg-lbl{color:#a0c8f0}
+.reg-nome{font-size:10px;font-weight:700;color:#1a2340;line-height:1.3}
+.reg-nums{display:flex;gap:14px;align-items:flex-start}.reg-n-g{font-size:15px;font-weight:700;color:var(--verde-txt);line-height:1}.reg-n-a{font-size:15px;font-weight:700;color:var(--ambar-txt);line-height:1}.reg-lbl{font-size:9px;color:var(--texto-cinza);margin-top:1px}
+.reg-barra{height:4px;border-radius:2px;display:flex;overflow:hidden}
 .reg-g{background:var(--verde)}
 .reg-a{background:var(--ambar)}
 
@@ -445,15 +444,16 @@ function renderizarMapaRegioes() {
     const pctG = total > 0 ? Math.round(vals.at/total*100) : 0;
     const pctA = 100 - pctG;
     const ativa = regAtiva === reg ? 'ativa' : '';
-    return `<div class="reg-item ${ativa}" onclick="filtrarPorRegiao('${reg.replace(/'/g,"\'")}')">
-      <div style="flex:1;min-width:0">
-        <div class="reg-nome">${reg}</div>
-        <div class="reg-barra" style="margin-top:3px">
-          <div class="reg-g" style="width:${pctG}%"></div>
-          <div class="reg-a" style="width:${pctA}%"></div>
-        </div>
+    return `<div class="reg-item ${ativa}" onclick="filtrarPorRegiao('${reg.replace(/'/g, "\\'")}')">
+      <div class="reg-nome">${reg}</div>
+      <div class="reg-nums">
+        <div><div class="reg-n-g">${vals.at}</div><div class="reg-lbl">Atendidas</div></div>
+        <div><div class="reg-n-a">${vals.sol}</div><div class="reg-lbl">Solicitadas</div></div>
       </div>
-      <div class="reg-stats">${vals.at}<span style="color:var(--verde-txt);margin:0 1px">✓</span> ${vals.sol}<span style="color:var(--ambar-txt);margin:0 1px">⋯</span></div>
+      <div class="reg-barra">
+        <div class="reg-g" style="width:${pctG}%"></div>
+        <div class="reg-a" style="width:${pctA}%"></div>
+      </div>
     </div>`;
   }).join('');
 }
@@ -500,7 +500,7 @@ function renderizarChartTemporal() {
       plugins:{legend:{position:'bottom', labels:{font:{size:11}, color:'#6B7A99', boxWidth:12}}},
       scales:{
         x:{grid:{color:'#f0f3f8'}, ticks:{color:'#6B7A99', font:{size:10}}},
-        y:{grid:{color:'#f0f3f8'}, ticks:{color:'#6B7A99', font:{size:10}}}
+        y:{grid:{color:'#f0f3f8'}, ticks:{color:'#6B7A99', font:{size:10}, stepSize:1, callback: v => Number.isInteger(v) ? v : null}}
       }
     }
   });
@@ -532,8 +532,8 @@ function renderizarChartMunicipal() {
     data: {
       labels,
       datasets: [
-        {label:'Atendidas', data:atData, backgroundColor:'#2A9D5C', borderRadius:3},
-        {label:'Solicitadas', data:solData, backgroundColor:'#F4A226', borderRadius:3}
+        {label:'Atendidas', data:atData, backgroundColor:'#2A9D5C', borderRadius:3, maxBarThickness:40},
+        {label:'Solicitadas', data:solData, backgroundColor:'#F4A226', borderRadius:3, maxBarThickness:40}
       ]
     },
     options: {
@@ -541,7 +541,7 @@ function renderizarChartMunicipal() {
       plugins:{legend:{position:'bottom', labels:{font:{size:11}, color:'#6B7A99', boxWidth:12}}},
       scales:{
         x:{grid:{display:false}, ticks:{color:'#6B7A99', font:{size:9}, maxRotation:45}},
-        y:{grid:{color:'#f0f3f8'}, ticks:{color:'#6B7A99', font:{size:10}}}
+        y:{grid:{color:'#f0f3f8'}, ticks:{color:'#6B7A99', font:{size:10}, stepSize:1, callback: v => Number.isInteger(v) ? v : null}}
       }
     }
   });
@@ -711,8 +711,8 @@ function renderizarChartP2() {
     atData = sorted.map(([,v])=>v.at);
     solData = sorted.map(([,v])=>v.sol);
     datasets = [
-      {label:'Atendidas',data:atData,backgroundColor:'#2A9D5C',borderRadius:3},
-      {label:'Solicitadas',data:solData,backgroundColor:'#F4A226',borderRadius:3}
+      {label:'Atendidas',data:atData,backgroundColor:'#2A9D5C',borderRadius:3,maxBarThickness:40},
+      {label:'Solicitadas',data:solData,backgroundColor:'#F4A226',borderRadius:3,maxBarThickness:40}
     ];
   } else if (agruparAtual === 'beneficiario') {
     titulo = 'Distribuição por Beneficiário';
@@ -728,8 +728,8 @@ function renderizarChartP2() {
     solData = sorted.map(([,v])=>v.sol);
     tipoChart = 'bar';
     datasets = [
-      {label:'Atendidas',data:atData,backgroundColor:'#2A9D5C',borderRadius:3,indexAxis:'y'},
-      {label:'Solicitadas',data:solData,backgroundColor:'#F4A226',borderRadius:3,indexAxis:'y'}
+      {label:'Atendidas',data:atData,backgroundColor:'#2A9D5C',borderRadius:3,maxBarThickness:30,indexAxis:'y'},
+      {label:'Solicitadas',data:solData,backgroundColor:'#F4A226',borderRadius:3,maxBarThickness:30,indexAxis:'y'}
     ];
   } else if (agruparAtual === 'regiao') {
     titulo = 'Distribuição por Região';
@@ -744,8 +744,8 @@ function renderizarChartP2() {
     atData = sorted.map(([,v])=>v.at);
     solData = sorted.map(([,v])=>v.sol);
     datasets = [
-      {label:'Atendidas',data:atData,backgroundColor:'#2A9D5C',borderRadius:3},
-      {label:'Solicitadas',data:solData,backgroundColor:'#F4A226',borderRadius:3}
+      {label:'Atendidas',data:atData,backgroundColor:'#2A9D5C',borderRadius:3,maxBarThickness:40},
+      {label:'Solicitadas',data:solData,backgroundColor:'#F4A226',borderRadius:3,maxBarThickness:40}
     ];
   } else if (agruparAtual === 'equipamento') {
     titulo = 'Total Solicitado por Equipamento';
@@ -757,7 +757,7 @@ function renderizarChartP2() {
     });
     const sorted = Object.entries(eqs).sort((a,b)=>b[1]-a[1]);
     labels = sorted.map(([e])=>e);
-    datasets = [{label:'Quantidade',data:sorted.map(([,v])=>v),backgroundColor:'#1A5FA8',borderRadius:3}];
+    datasets = [{label:'Quantidade',data:sorted.map(([,v])=>v),backgroundColor:'#1A5FA8',borderRadius:3,maxBarThickness:40}];
   }
 
   document.getElementById('chartP2Title').textContent = titulo;
@@ -774,8 +774,8 @@ function renderizarChartP2() {
       responsive:true, maintainAspectRatio:true,
       plugins:{legend:{position:'bottom', labels:{font:{size:11}, color:'#6B7A99', boxWidth:12}}},
       scales:{
-        x:{grid:{color:'#f0f3f8'}, ticks:{color:'#6B7A99', font:{size:9}, maxRotation: isHorizontal?0:45}},
-        y:{grid:{color:'#f0f3f8'}, ticks:{color:'#6B7A99', font:{size:9}}}
+        x:{grid:{color:'#f0f3f8'}, ticks:{color:'#6B7A99', font:{size:9}, maxRotation: isHorizontal?0:45, stepSize:1, callback: v => Number.isInteger(v) ? v : null}},
+        y:{grid:{color:'#f0f3f8'}, ticks:{color:'#6B7A99', font:{size:9}, stepSize:1, callback: v => Number.isInteger(v) ? v : null}}
       }
     }
   });
