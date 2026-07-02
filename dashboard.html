@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!-- v20260702232533 -->
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -102,15 +102,12 @@ select:focus,input:focus{border-color:var(--azul-medio)}
 .pg-ind{font-size:10px;color:var(--cinza)}
 .btn-nav{background:var(--azul);color:#fff;border:none;border-radius:7px;padding:7px 16px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit}
 .btn-nav:hover{background:#122a4e}
-#loginScreen{position:fixed;inset:0;background:var(--azul);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:0}
+
 @media(max-width:900px){.kpi-row{grid-template-columns:1fr}.regioes-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 
-<div id="loginScreen">
-  <div style="text-align:center;margin-bottom:32px">
-    <div style="color:#fff;font-size:20px;font-weight:700;letter-spacing:.5px">MONITORAMENTO DE DEMANDAS — 14ª Superintendência Regional</div>
     <div style="color:#a0b4d0;font-size:12px;margin-top:6px">Protocolo Digital — Acesso Restrito</div>
   </div>
   <div style="background:#fff;border-radius:12px;padding:32px 36px;width:320px">
@@ -259,23 +256,9 @@ HOLANDA", "status": "SOLICITADO", "data": "2026-06-03", "ano": "2026", "observac
 const EQ_STATS=[{"nome": "Barracas", "at": 201, "sol": 555}, {"nome": "Trator", "at": 82, "sol": 114}, {"nome": "Kit irrigação", "at": 32, "sol": 150}, {"nome": "Grade Aradora", "at": 66, "sol": 75}, {"nome": "Kit Corte e Costura", "at": 23, "sol": 110}, {"nome": "Aeradores", "at": 0, "sol": 110}, {"nome": "Microtrator", "at": 32, "sol": 63}, {"nome": "Kit Apicultura", "at": 1, "sol": 92}, {"nome": "Carreta", "at": 44, "sol": 25}, {"nome": "Kit Pesca / Psicultura", "at": 38, "sol": 13}, {"nome": "Plantadeira", "at": 18, "sol": 21}, {"nome": "Kit Pecuária leiteira", "at": 11, "sol": 22}, {"nome": "Retroescavadeira", "at": 11, "sol": 17}, {"nome": "Grade Niveladora", "at": 19, "sol": 7}, {"nome": "Caminhão", "at": 4, "sol": 19}, {"nome": "Kit processamento de frutas", "at": 5, "sol": 15}, {"nome": "VLC", "at": 6, "sol": 11}, {"nome": "Motoniveladora", "at": 6, "sol": 9}, {"nome": "Kit Carcinicultura", "at": 0, "sol": 15}, {"nome": "Máquina de Gelo", "at": 4, "sol": 9}, {"nome": "Veículo", "at": 3, "sol": 9}, {"nome": "Pá carregadeira", "at": 4, "sol": 7}, {"nome": "Motor de rabeta", "at": 2, "sol": 7}, {"nome": "Tanque de leite", "at": 0, "sol": 8}, {"nome": "Kit ordenhadeira", "at": 1, "sol": 5}, {"nome": "Ensiladeira", "at": 0, "sol": 6}, {"nome": "Reboque", "at": 2, "sol": 3}, {"nome": "Escavadeira Hidráulica", "at": 0, "sol": 5}, {"nome": "Kit Mandiocultura", "at": 2, "sol": 2}, {"nome": "Roçadeira", "at": 1, "sol": 2}, {"nome": "Debulhador", "at": 0, "sol": 3}, {"nome": "Freezer", "at": 0, "sol": 2}, {"nome": "Caixa d'água", "at": 0, "sol": 2}, {"nome": "Barco", "at": 0, "sol": 2}, {"nome": "Motor de popa", "at": 0, "sol": 2}, {"nome": "Carro Pipa", "at": 0, "sol": 1}, {"nome": "Rolo Compactador", "at": 1, "sol": 0}, {"nome": "Empilhadeira", "at": 1, "sol": 0}, {"nome": "Pulverizador", "at": 1, "sol": 0}, {"nome": "Carroça", "at": 0, "sol": 1}];
 let dp1=[...D], dp2=[...D], ag='municipio', sc=-1, sa=true, eqSel=null;
 let cComp=null, cP2=null;
-const HASH='4a86b9c3b3e63660d348c56d9512e95ac32cde17a6e9ccbc8ab877969a6f8dc4';
 
-async function verificarSenha(){
-  const input=document.getElementById('senhaInput').value;
-  const enc=new TextEncoder();
-  const buf=await crypto.subtle.digest('SHA-256',enc.encode(input));
-  const hex=Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-  if(hex===HASH){
-    document.getElementById('loginScreen').style.display='none';
-    document.getElementById('senhaInput').value='';
-  } else {
-    document.getElementById('senhaErro').style.display='block';
-    document.getElementById('senhaInput').value='';
-    document.getElementById('senhaInput').focus();
-    setTimeout(()=>document.getElementById('senhaErro').style.display='none',3000);
-  }
-}
+
+
 
 document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('dataAtual').textContent='Gerado em '+new Date().toLocaleDateString('pt-BR')+' às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
