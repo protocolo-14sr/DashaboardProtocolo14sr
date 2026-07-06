@@ -36,12 +36,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#F5F7FA;color:#1a2340;fo
 .klbl{font-size:10px;color:var(--cinza);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
 .kval{font-size:28px;font-weight:700;margin:6px 0 3px;line-height:1}
 .ksub{font-size:10px;color:#aaa}
-.nota-row{display:flex;justify-content:flex-end;align-items:center;padding:4px 2px;margin-bottom:8px;position:relative}
-.nota-btn{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--cinza);cursor:pointer;user-select:none}
-.nota-btn span{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--azul-m);color:#fff;font-size:9px;font-weight:700;flex-shrink:0}
-.tooltip{display:none;position:absolute;top:calc(100% + 6px);right:0;background:#1a2340;color:#fff;font-size:11px;line-height:1.6;padding:12px 16px;border-radius:8px;width:340px;z-index:100;box-shadow:0 4px 16px rgba(0,0,0,.2);text-align:left}
-.tooltip::before{content:'';position:absolute;bottom:100%;right:12px;border:6px solid transparent;border-bottom-color:#1a2340}
-.nota-btn:hover .tooltip{display:block}
+
 .filtros{background:#fff;border-radius:10px;border:.5px solid var(--borda);padding:10px 16px;margin-bottom:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .flbl{font-size:10px;color:var(--cinza);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
 .fsep{width:1px;height:22px;background:var(--borda)}
@@ -138,16 +133,7 @@ select:focus,input:focus{border-color:var(--azul-m)}
     <div class="kpi"><div class="kbar" style="background:var(--ambar)"></div><div class="kbody"><div class="klbl">Demandas Solicitadas</div><div class="kval" style="color:var(--atxt)" id="k2">0</div><div class="ksub" id="k2s"></div></div></div>
     <div class="kpi"><div class="kbar" style="background:var(--azul-m)"></div><div class="kbody"><div class="klbl">Percentual de Atendimento</div><div class="kval" style="color:var(--azul-m)" id="k3">0%</div><div class="ksub">Atendidas / Total</div></div></div>
   </div>
-  <div class="nota-row">
-    <div class="nota-btn">Nota de analise <span>i</span>
-      <div class="tooltip">
-        <strong style="display:block;margin-bottom:6px;font-size:12px">Leitura dos indicadores</strong>
-        As <strong>demandas atendidas</strong> comprovam a efetividade da politica - cada entrega realizada representa uma transformacao concreta na vida de pessoas e comunidades em todo o estado.<br><br>
-        As <strong>demandas solicitadas</strong> demonstram que a politica permanece necessaria - ha beneficiarios em todo o estado que dela dependem.<br><br>
-        O percentual reflete o ciclo natural de uma politica publica: prazos licitatorios, disponibilidade orcamentaria e demanda corrente sao fatores estruturais, nao indicadores de ineficiencia.
-      </div>
-    </div>
-  </div>
+
   <div class="filtros">
     <span class="flbl">Filtros</span><div class="fsep"></div>
     <select id="f1r" onchange="ap1()"><option value="">Todas as regioes</option></select>
