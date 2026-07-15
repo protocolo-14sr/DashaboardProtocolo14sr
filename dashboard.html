@@ -279,7 +279,24 @@ function lp1(){['f1m','f1s','f1st','f1a'].forEach(id=>document.getElementById(id
 
 function kpis(){const at=d1.filter(r=>r.status==='ATENDIDO').length,sol=d1.filter(r=>r.status==='SOLICITADO').length,tot=d1.length;document.getElementById('k1').textContent=at;document.getElementById('k2').textContent=sol;document.getElementById('k3').textContent=tot>0?(at/tot*100).toFixed(1)+'%':'0%';document.getElementById('k1s').textContent=tot>0?(at/tot*100).toFixed(1)+'% do total':'-';document.getElementById('k2s').textContent=tot>0?(sol/tot*100).toFixed(1)+'% do total':'-';}
 
-function comp(){const ativos=[...document.querySelectorAll('.cp.on')].map(p=>p.dataset.v);let key='todos';if(ativos.length>0){const anos=Object.keys(CV).filter(k=>k!=='todos'&&k!=='at'&&k!=='sol');const ha=anos.filter(a=>ativos.includes(a));const hat=ativos.includes('at'),hsol=ativos.includes('sol');if(ha.length===1&&!hat&&!hsol)key=ha[0];else if(hat&&!hsol&&ha.length===0)key='at';else if(hsol&&!hat&&ha.length===0)key='sol';else key='todos';}const d=CV[key]||CV.todos;if(cC)cC.destroy();cC=new Chart(document.getElementById('cComp').getContext('2d'),{type:'bar',data:{labels:d.l,datasets:[{data:d.d,backgroundColor:d.c,borderRadius:4,maxBarThickness:40}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:true,layout:{padding:{right:40}},plugins:{legend:{display:false}},scales:{x:{display:false},y:{grid:{display:false},ticks:{color:'#1a2340',font:{size:10,weight:'600'}}}},animation:{onComplete:function(){const ctx=this.ctx;this.data.datasets.forEach((ds,i)=>{this.getDatasetMeta(i).data.forEach((bar,idx)=>{const v=ds.data[idx];ctx.fillStyle='#1a2340';ctx.font='600 11px Segoe UI,Arial,sans-serif';ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(v,bar.x+8,bar.y);});});}}}});}
+function comp(){
+  const ativos=[...document.querySelectorAll('.cp.on')].map(p=>p.dataset.v);
+  if(ativos.length===0){const d=CV.todos;if(cC)cC.destroy();cC=new Chart(document.getElementById('cComp').getContext('2d'),chartCfg(d));return;}
+  const anos=Object.keys(CV).filter(k=>k!=='todos'&&k!=='at'&&k!=='sol');
+  const anosAtivos=anos.filter(a=>ativos.includes(a));
+  const hat=ativos.includes('at'),hsol=ativos.includes('sol');
+  // Build custom dataset based on selections
+  let labels=[],data=[],cores=[];
+  const todosAnos=anosAtivos.length>0?anosAtivos:anos;
+  todosAnos.forEach((ano,i)=>{
+    const d=CV[ano];
+    if(hat||(!hat&&!hsol)){labels.push(d.l[0]);data.push(d.d[0]);cores.push(d.c[0]);}
+    if(hsol||(!hat&&!hsol)){labels.push(d.l[1]);data.push(d.d[1]);cores.push(d.c[1]);}
+  });
+  const d={l:labels,d:data,c:cores};
+  if(cC)cC.destroy();cC=new Chart(document.getElementById('cComp').getContext('2d'),chartCfg(d));return;}
+function chartCfg(d){return {type:'bar',data:{labels:d.l,datasets:[{data:d.d,backgroundColor:d.c,borderRadius:4,maxBarThickness:40}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:true,layout:{padding:{right:40}},plugins:{legend:{display:false}},scales:{x:{display:false},y:{grid:{display:false},ticks:{color:'#1a2340',font:{size:10,weight:'600'}}}},animation:{onComplete:function(){const ctx=this.ctx;this.data.datasets.forEach((ds,i)=>{this.getDatasetMeta(i).data.forEach((bar,idx)=>{const v=ds.data[idx];ctx.fillStyle='#1a2340';ctx.font='600 11px Segoe UI,Arial,sans-serif';ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(v,bar.x+8,bar.y);});});}}}};}
+function _comp_unused(){const d=CV.todos;}
 function tgv(el){el.classList.toggle('on');comp();}
 
 // ── MAPA ──
